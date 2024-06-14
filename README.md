@@ -6,7 +6,7 @@
 
 # Getting started
 * ` python -m pip install -e .`
-* Run `test.py` to see if everything is working and to see it in action.
+* Run `test.py` to see if everything is working and to see it in action. Another example called `test2.py` can be used to benchmark the speed loss and gain for your specific use case.
 
 # Note
 * This code is probably not final and will get updated as I encounter bugs.
