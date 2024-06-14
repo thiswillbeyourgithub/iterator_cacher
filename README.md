@@ -6,4 +6,7 @@
 
 # Getting started
 * ` python -m pip install -e .`
-TODO_tutorial
+* Run `test.py` to see if everything is working and to see it in action.
+
+# Note
+* This code is probably not final and will get updated as I encounter bugs.
