@@ -4,7 +4,7 @@ from setuptools.command.install import install
 
 setup(
     name="iterator_cacher",
-    version="0.0.2",
+    version="0.0.3",
     description="decorator to transparently cache each element of an iterable",
     long_description="decorator to transparently cache each element of an iterable",
     url="https://github.com/thiswillbeyourgithub/iterator_cacher",
