@@ -167,4 +167,4 @@ def IteratorCacher(
         return wrapper
     return meta_wrapper
 
-IteratorCacher.__VERSION__ = "0.0.4"
+IteratorCacher.__VERSION__ = "0.0.5"
