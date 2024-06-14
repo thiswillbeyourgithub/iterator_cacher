@@ -1,3 +1,4 @@
+import dill
 from typing import Callable, List
 from functools import wraps
 from pathlib import Path
