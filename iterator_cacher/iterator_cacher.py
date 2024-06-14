@@ -7,7 +7,7 @@ import joblib
 
 
 @typechecked
-def iterator_cacher(
+def IteratorCacher(
     cache_location: str,
     iter_list: List[str],
     unpacking_func: Callable,
@@ -56,7 +56,7 @@ def iterator_cacher(
         @wraps(func)
         def wrapper(*args, **kwargs) -> Callable:
             assert not args, (
-                "Only keyword arguments are supported for the iterator_cacher decorator"
+                "Only keyword arguments are supported for the IteratorCacher decorator"
             )
 
             for il in iter_list:
@@ -166,7 +166,7 @@ def iterator_cacher(
         return wrapper
     return meta_wrapper
 
-iterator_cacher.__VERSION__ = "0.0.1"
+IteratorCacher.__VERSION__ = "0.0.1"
 
 if __name__ == "__main__":
     # for testing and demonstration purposes
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 
     lt = ascii_letters[:list(ascii_letters).index("A")]
 
-    @iterator_cacher(
+    @IteratorCacher(
         cache_location="test",
         iter_list=["texts"],
         verbose=True,
