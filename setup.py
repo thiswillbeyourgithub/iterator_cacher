@@ -28,8 +28,7 @@ setup(
     install_requires=[
         "dill >= 0.3.8",
         "joblib >= 1.4.2",
-        "typeguard >= 4.3.0"
-        # TODO_req
+        "beartype >= 0.18.5",
     ],
 
 )

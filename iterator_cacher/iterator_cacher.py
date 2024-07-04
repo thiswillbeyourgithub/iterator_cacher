@@ -3,11 +3,11 @@ from typing import Callable, List
 from functools import wraps
 from pathlib import Path
 
-from typeguard import typechecked
+from beartype import beartype
 import joblib
 
 
-@typechecked
+@beartype
 def IteratorCacher(
     cache_location: str,
     iter_list: List[str],
