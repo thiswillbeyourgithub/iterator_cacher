@@ -31,10 +31,5 @@ setup(
         "typeguard >= 4.3.0"
         # TODO_req
     ],
-    extra_require={
-    'optionnal_feature': [
-        # TODO_req
-        ]
-    },
 
 )
