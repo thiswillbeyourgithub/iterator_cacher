@@ -6,7 +6,7 @@ from pathlib import Path, PosixPath
 from beartype import beartype
 import joblib
 
-__VERSION__: str = "0.0.5"
+__VERSION__: str = "0.1.0"
 
 @beartype
 def IteratorCacher(
