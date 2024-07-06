@@ -22,6 +22,7 @@ def IteratorCacher(
         func_hash = joblib.hash(dill.dumps(func))
 
         dir = Path(cache_location) / str(func) / func_hash
+        dir.parent.mkdir(exist_ok=True, parent=True)
         mem = joblib.Memory(dir, verbose=False)
 
         @wraps(func)
