@@ -1,7 +1,7 @@
 import dill
-from typing import Callable, List
+from typing import Callable, List, Union
 from functools import wraps
-from pathlib import Path
+from pathlib import Path, PosixPath
 
 from beartype import beartype
 import joblib
@@ -9,13 +9,14 @@ import joblib
 
 @beartype
 def IteratorCacher(
-    cache_location: str,
+    cache_location: Union[str, PosixPath],
     iter_list: List[str],
     unpacking_func: Callable,
     repacking_func: Callable,
     verbose: bool = False,
     ) -> Callable:
 
+    @beartype
     def meta_wrapper(func: Callable) -> Callable:
 
         func_hash = joblib.hash(dill.dumps(func))
@@ -24,6 +25,7 @@ def IteratorCacher(
         mem = joblib.Memory(dir, verbose=False)
 
         @wraps(func)
+        @beartype
         @mem.cache(ignore=["cacher_code"])
         def memory_handler(
             cacher_code,
