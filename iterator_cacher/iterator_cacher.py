@@ -11,9 +11,9 @@ __VERSION__: str = "0.1.0"
 @beartype
 def IteratorCacher(
     cache_location: Union[str, PosixPath],
-    iter_list: List[str],
     unpacking_func: Callable,
     repacking_func: Callable,
+    iter_list: List[str] = None,
     verbose: bool = False,
     ) -> Callable:
 
@@ -63,7 +63,13 @@ def IteratorCacher(
             assert not args, (
                 "Only keyword arguments are supported for the IteratorCacher decorator"
             )
+            if iter_list is None:
+                iter_list = []
+                for k, v in kwargs.items():
+                    if hasattr(v, "__iter__"):
+                        iter_list.append(k)
 
+            assert iter_list, "no argument iter_list given an not iterable in kwargs found"
             for il in iter_list:
                 assert il in kwargs, f"Iterator {il} is not present in kwargs"
                 assert hasattr(kwargs[il], "__iter__"), f"Object at key {il} is not an iterator"
