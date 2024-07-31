@@ -123,6 +123,8 @@ def IteratorCacher(
                         item[il]
                         for item in todos
                     ]
+                if verbose:
+                    print(f"Arguments before actual call: {todo_kwargs}")
 
                 # compute missing values
                 new_values = memory_handler(
@@ -133,6 +135,8 @@ def IteratorCacher(
 
                 # upack the output into an iterable
                 new_parsed = unpacking_func(new_values)
+                if verbose:
+                    print(f"Type after unpacking: {type(new_parsed)}")
 
                 assert len(new_parsed) == len(todos)
 
