@@ -47,7 +47,7 @@ def IteratorCacher(
                     is the value that has to be recomputed
 
             """
-            assert not args, "Non keyword args are not supported"
+            assert not args, f"Non keyword args are not supported but received {args}"
             if cacher_code is not None and cacher_code is not False:
                 return cacher_code
             assert cacher_code is not False, "cached result was about to be recomputed"
@@ -65,7 +65,7 @@ def IteratorCacher(
             **kwargs,
             ) -> Callable:
             assert not args, (
-                "Only keyword arguments are supported for the IteratorCacher decorator"
+                f"Only keyword arguments are supported for the IteratorCacher decorator, received {args}"
             )
             if iter_list is None:
                 iter_list = []
