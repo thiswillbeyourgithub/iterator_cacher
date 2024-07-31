@@ -173,6 +173,9 @@ def IteratorCacher(
             return out
 
         wrapper.wrapped_func = memory_handler
+        wrapper.check_call_in_cache = memory_handler.check_call_in_cache
+        wrapper.func = func
+        wrapper.ignore = memory_handler.ignore
 
         return wrapper
     return meta_wrapper
