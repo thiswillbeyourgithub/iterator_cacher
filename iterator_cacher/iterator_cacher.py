@@ -30,11 +30,11 @@ def IteratorCacher(
         @beartype
         @mem.cache(ignore=["cacher_code"])
         def memory_handler(
-            cacher_code,
-            func_hash,
+            cacher_code: Optional[bool],
+            func_hash: str,
             *args,
             **kwargs,
-            ):
+            ) -> List[bool]:
             """
             wrapper around func.
             func_hash is not used internally but allows to distinguish functions.
