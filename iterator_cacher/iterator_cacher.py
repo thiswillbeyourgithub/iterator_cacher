@@ -119,12 +119,10 @@ def IteratorCacher(
                 # argument to use to compute all missing values
                 todo_kwargs = kwargs.copy()
                 for il in iter_list:
-                    todo_kwargs[il] = (
-                            [
-                                item[il]
-                                for item in todos
-                            ]
-                    )
+                    todo_kwargs[il] = [
+                        item[il]
+                        for item in todos
+                    ]
 
                 # compute missing values
                 new_values = memory_handler(
