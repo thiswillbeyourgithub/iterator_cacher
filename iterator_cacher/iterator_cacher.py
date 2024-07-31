@@ -20,7 +20,9 @@ def IteratorCacher(
     @beartype
     def meta_wrapper(func: Callable) -> Callable:
 
-        func_hash = joblib.hash(dill.dumps(func))
+        func_hash = joblib.hash(
+            dill.dumps(func) + dill.dumps(unpacking_func) + dill.dumps(repacking_func) + dill.dumps(iter_list)
+        )
 
         dir = Path(cache_location) / str(func) / func_hash
         dir.parent.mkdir(exist_ok=True, parents=True)
