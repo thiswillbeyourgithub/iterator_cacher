@@ -59,7 +59,11 @@ def IteratorCacher(
             return out
 
         @wraps(func)
-        def wrapper(*args, **kwargs) -> Callable:
+        def wrapper(
+            iter_list: List[str] = iter_list,
+            *args,
+            **kwargs,
+            ) -> Callable:
             assert not args, (
                 "Only keyword arguments are supported for the IteratorCacher decorator"
             )
