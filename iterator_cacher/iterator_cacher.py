@@ -162,7 +162,7 @@ def IteratorCacher(
                         **item,
                     )
                     # sanity check
-                    assert val is val_to_cache
+                    assert val is val_to_cache, f"Error: val is {str(val)[:1000]} and val_to_cache is {str(val_to_cache)[:1000]}"
                     # for good measure: retrieval test
                     check = memory_handler(
                         cacher_code=None,
