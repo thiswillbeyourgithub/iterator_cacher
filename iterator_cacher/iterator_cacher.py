@@ -100,8 +100,12 @@ def IteratorCacher(
                 )
                 for item in all_kwargs
             ]
-            dones = [item for it, item in enumerate(all_kwargs) if states[it]]
-            todos = [item for it, item in enumerate(all_kwargs) if not states[it]]
+            dones = []
+            todos = []
+            [
+                dones.append(item) if states[it] else todos.append(item)
+                for it, item in enumerate(all_kwargs)
+            ]
 
             if verbose:
                 print(f"Number of cached values: '{len(dones)}'")
