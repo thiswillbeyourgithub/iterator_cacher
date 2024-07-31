@@ -54,6 +54,7 @@ def IteratorCacher(
                 return cacher_code
             assert cacher_code is not False, "cached result was about to be recomputed"
             assert cacher_code is None, "Was about to compute a value even though cacher_code is not None"
+            assert all(i in kwargs for i in iter_list), "Missing iter_list from kwargs!"
 
             out = func(**kwargs)
             assert hasattr(unpacking_func(out), "__iter__"), "The computed value must be an iterable!"
