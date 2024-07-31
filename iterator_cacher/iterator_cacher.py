@@ -24,7 +24,7 @@ def IteratorCacher(
 
         dir = Path(cache_location) / str(func) / func_hash
         dir.parent.mkdir(exist_ok=True, parents=True)
-        mem = joblib.Memory(dir, verbose=False)
+        mem = joblib.Memory(dir, verbose=verbose)
 
         @wraps(func)
         @beartype
@@ -72,6 +72,8 @@ def IteratorCacher(
                 for k, v in kwargs.items():
                     if hasattr(v, "__iter__"):
                         iter_list.append(k)
+            if verbose:
+                print(f"Will use iter_list: {iter_list}")
 
             assert iter_list, "no argument iter_list given an not iterable in kwargs found"
             for il in iter_list:
@@ -82,6 +84,8 @@ def IteratorCacher(
             assert len(set([len(kwargs[il]) for il in iter_list])) == 1, "Not all iterators have the same length"
 
             n_items = len(kwargs[iter_list[0]])
+            if verbose:
+                print(f"Number of items in iter_list received: {n_items}")
 
             # create each arg
             all_kwargs = []
@@ -108,7 +112,7 @@ def IteratorCacher(
             ]
 
             if verbose:
-                print(f"Number of cached values: '{len(dones)}'")
+                print(f"Number of already cached values: '{len(dones)}'")
                 print(f"Number of values to compute: '{len(todos)}'")
 
             if todos:
