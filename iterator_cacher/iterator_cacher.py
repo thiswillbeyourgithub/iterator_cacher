@@ -47,11 +47,11 @@ def IteratorCacher(
                     is the value that has to be recomputed
 
             """
-            assert not args, f"Non keyword args are not supported"
+            assert not args, "Non keyword args are not supported"
             if cacher_code is not None and cacher_code is not False:
                 return cacher_code
-            assert cacher_code is not False, f"cached result was about to be recomputed"
-            assert cacher_code is None, f"Was about to compute a value even though cacher_code is not None"
+            assert cacher_code is not False, "cached result was about to be recomputed"
+            assert cacher_code is None, "Was about to compute a value even though cacher_code is not None"
 
             out = func(**kwargs)
             assert hasattr(unpacking_func(out), "__iter__"), "The computed value must be an iterable!"
