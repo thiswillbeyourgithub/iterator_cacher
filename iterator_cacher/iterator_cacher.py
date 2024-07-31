@@ -1,5 +1,5 @@
 import dill
-from typing import Callable, List, Union, Optional
+from typing import Callable, List, Union, Optional, Any
 from functools import wraps
 from pathlib import Path, PosixPath
 
@@ -30,7 +30,7 @@ def IteratorCacher(
         @beartype
         @mem.cache(ignore=["cacher_code"])
         def memory_handler(
-            cacher_code: Optional[bool],
+            cacher_code: Optional[Union[bool, Any]],
             func_hash: str,
             *args,
             **kwargs,
