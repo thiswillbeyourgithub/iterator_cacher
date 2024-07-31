@@ -1,5 +1,5 @@
 import dill
-from typing import Callable, List, Union
+from typing import Callable, List, Union, Optional
 from functools import wraps
 from pathlib import Path, PosixPath
 
@@ -13,7 +13,7 @@ def IteratorCacher(
     cache_location: Union[str, PosixPath],
     unpacking_func: Callable,
     repacking_func: Callable,
-    iter_list: List[str] = None,
+    iter_list: Optional[List[str]] = None,
     verbose: bool = False,
     ) -> Callable:
 
