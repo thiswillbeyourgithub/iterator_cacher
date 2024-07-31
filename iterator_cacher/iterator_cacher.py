@@ -57,7 +57,6 @@ def IteratorCacher(
             assert all(i in kwargs for i in iter_list), "Missing iter_list from kwargs!"
 
             out = func(**kwargs)
-            assert hasattr(unpacking_func(out), "__iter__"), "The computed value must be an iterable!"
 
             return out
 
