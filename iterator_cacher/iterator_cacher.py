@@ -220,13 +220,13 @@ def IteratorCacher(
                             func_hash=func_hash,
                             user_func=func,
                             kwargs=all_kwargs[ist],
-                        ) is sta
+                        ) is sta, "Failed sanity check #1"
                         assert memory_handler.check_call_in_cache(
                             cacher_code="whatever",
                             func_hash=func_hash,
                             user_func="something",
                             kwargs=all_kwargs[ist],
-                        ) is sta
+                        ) is sta, "Failed sanity check #2"
                         try:
                             failed = None
                             memory_handler(
@@ -238,7 +238,7 @@ def IteratorCacher(
                             failed = False
                         except Exception:
                             failed = True
-                        assert failed, "Sanity check failed"
+                        assert failed, "Failed sanity check #3"
                     else:
                         raise ValueError(sta)
 
@@ -258,7 +258,7 @@ def IteratorCacher(
                 # with arguments from iter_list (i.e. that are batch specific)
                 todo_kwargs = kwargs.copy()
                 for il in iter_list:
-                    assert il in todo_kwargs
+                    assert il in todo_kwargs, f"missing {il} in todo_kwargs"
                     todo_kwargs[il] = []
                 batches = [todo_kwargs.copy()]
                 for item in todos:
@@ -268,9 +268,9 @@ def IteratorCacher(
                             batches[-1][il] = item[il]
                         else:
                             batches[-1][il].extend(item[il])
-                        assert len(item[il]) == 1
+                        assert len(item[il]) == 1, f"Unexpected item length: {item}"
                 if len(todos) > 1 and batch_size > 1:
-                    assert len(batches[0][il]) > 1
+                    assert len(batches[0][il]) > 1, f"Unexpected batches length"
 
                 p(f"Number of batches: {len(batches)}")
                 p(f"Sample of arguments before actual call: {str(batches[0])[:1000]}")
@@ -281,7 +281,7 @@ def IteratorCacher(
                 for ib, b in enumerate(batches):
                     p(f"Number in batch: {len(b[il])}")
                     p(f"Hash of batch #{ib}: {joblib.hash(b)}\nvalue: {str(b)[:100]}")
-                    assert all(il in b for il in iter_list)
+                    assert all(il in b for il in iter_list), "missing iter_list elements in batch"
                     new_values = memory_handler(
                         cacher_code=DoComputeValue(),
                         func_hash=func_hash,
@@ -304,7 +304,7 @@ def IteratorCacher(
                     assert isinstance(temp_parsed, list), f"Expected type list after unpacking but got {type(temp_parsed)}"
                     new_parsed.extend(temp_parsed)
 
-                assert len(new_parsed) == len(todos)
+                assert len(new_parsed) == len(todos), f"len(todos) is {len(todos)} but len(new_parsed) is {len(new_parsed)}"
 
             # store the value of each iteration of the iter_lists in the cache
             # and reconstruct the final list with all the values in the right order
@@ -313,7 +313,7 @@ def IteratorCacher(
                 item = all_kwargs[i]
                 if states[i]:
                     # was already cached, fetch the value and store it
-                    assert all(il in item for il in iter_list)
+                    assert all(il in item for il in iter_list), f"missing some iter_list in {item}"
                     val = memory_handler(
                         cacher_code=CrashIfNotCached(),
                         func_hash=func_hash,
@@ -329,7 +329,7 @@ def IteratorCacher(
                             user_func=func,
                             kwargs=item,
                         )
-                        assert test is val or test == val or joblib.hash(test) == joblib.hash(val)
+                        assert test is val or test == val or joblib.hash(test) == joblib.hash(val), f"test != val:\ntest is {str(test)[:100]}\nval is {str(val)[:100]}"
                 else:
                     # was computed in a batch, we need to store it now
                     val = new_parsed[todos.index(item)]
@@ -344,7 +344,7 @@ def IteratorCacher(
                 result_list.append(val)
 
             # final checks
-            assert len(result_list) == n_items
+            assert len(result_list) == n_items, f"len(result_list) is {len(result_list)} but n_items is {n_items}"
 
             # assemble the result as per the user liking
             if combine_res is not None:
