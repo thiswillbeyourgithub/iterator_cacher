@@ -6,6 +6,8 @@
 
 # Getting started
 * ` python -m pip install iterator_cacher`
+* Import with `from iterator_cacher import IteratorCacher`
+* To use: don't use as decorator but instead manually decorate the function.
 * Example to cache embeddings
 
 ``` python
