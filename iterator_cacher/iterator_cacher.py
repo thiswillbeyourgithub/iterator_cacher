@@ -30,8 +30,16 @@ def memory_handler_(
     **kwargs,
     ) -> List[Union[bool, Any]]:
     """
-    wrapper around func.
+    Sort of like a wrapper around func.
+    The idea is that this function is cached using joblib, but joblib is
+    asked to ignore the argument cacher_code, so we can compute many values
+    at once then cache each individual value by passing it as cacher_code and
+    returning instantly.
+
+    Arguments:
+    ----------
     func_hash is not used internally but allows to distinguish functions.
+
     cacher_code can have several values:
         if of class CrashIfNotCached:
             The result is assumed to be already cached, so should crash if the function is actually called instead of just checking the cache.
@@ -39,6 +47,9 @@ def memory_handler_(
             Do compute the value
         elif of class ReturnThisValue:
             the value that has to be stored in the cache is in the .value attribute
+    Returns:
+    --------
+    the value, either computed or from the cache
 
     """
     assert not args, f"Non keyword args are not supported but received {args}"
@@ -59,35 +70,75 @@ def IteratorCacher(
     res_to_list: Callable,
     combine_res: Optional[Callable] = None,
     iter_list: Optional[List[str]] = None,
-    verbose: bool = False,
     batch_size: int = 500,
+    verbose: bool = False,
     ) -> Callable:
+    """
+    Note that args are not supported, you have to send each argument as a
+    keyword argument.
+
+    Parameters
+    ----------
+    memory_object: a joblib.Memory object
+        it has to be given by the user otherwise the cache gets seemingly
+        recomputed each time python is run.
+
+    res_to_list: Callable
+        a callable (ideally a lambda function) that takes the output
+        of func and turns it into a list. For example if your function is
+        turning strings into numpy arrays, res_to_list could be "lambda ar: ar.squeeze().to_list()"
+
+    combine_res: Callable, optional
+        a callable (ideally a lambda function) that
+        takes in a list made of outputs of res_to_list, appended one after the
+        other and turns it into a single variable. For example in the same
+        example this could be "lambda l: np.array([np.array(li) for li in l])"
+        If not given, you receive a single list containing the outputs after
+        res_to_list was called on each output.
+
+    iter_list: List[str], optional
+        list of strings. For example if your function call
+        will have kwargs '{"embedding_model": myname, "text_list": mylist}
+        then iter_list should be ["text_list"]. It is used by IteratorCacher
+        to determine which list among the args should be used to call the
+        func by batch. iter_list can contain multiple names but
+        then each of those iterables must contain the same number of elements.
+        It was tested with lists but might work with other iterables.
+        If iter_list is not given, we assume all iterables of the kwargs are
+        implied, but this will fail if they don't have have the same length.
+
+    batch_size: int, default 500
+        if calling with many input arguments, call the func by batch of this size
+
+    verbose: bool
+
+    """
     def p(message: str) -> None:
+        "print if verbose is set"
         if verbose:
             print(message)
 
     @beartype
     def meta_wrapper(func: Callable) -> Callable:
+        # hash the functions and parameters to distinguish functions
         to_hash = []
-        to_hash.append(func)
-        to_hash.append(iter_list)
+        try:
+            to_hash.append(joblib.hash(func))
+        except Exception as err:
+            raise Exception(f"Failed to hash func: '{err}'")
+        to_hash.append(joblib.hash(iter_list))
         for userfunc in [res_to_list, combine_res]:
-            if userfunc is None:
-                continue
             try:
-                joblib.hash(userfunc)
-                to_hash.append(userfunc)
+                to_hash.append(joblib.hash(userfunc))
             except Exception:
                 if "lambda" in str(userfunc):
                     stringfunc = inspect.getsource(userfunc).strip().split("=", 1)[1].split("lambda ", 1)[1].strip()
                     while stringfunc.endswith(",") or stringfunc.endswith(")"):
                         stringfunc = stringfunc[:-1]
-                    to_hash.append(stringfunc)
+                    to_hash.append(joblib.hash(stringfunc))
                 else:
                     raise
-
-        func_hash = joblib.hash([joblib.hash(h) for h in to_hash])
-
+        func_hash = joblib.hash(to_hash)
         p(f"Function hash: {func_hash}")
 
         memory_handler = memory_object.cache(
@@ -100,6 +151,7 @@ def IteratorCacher(
             *args,
             **kwargs,
             ) -> Callable:
+            "actual wrapper for the function of the user"
             assert not args, (
                 f"Only keyword arguments are supported for the IteratorCacher decorator, received {args}"
             )
@@ -139,6 +191,8 @@ def IteratorCacher(
                 )
                 for item in all_kwargs
             ]
+
+            # sanity check
             for ist, sta in enumerate(states):
                 if sta is True:
                     assert memory_handler.check_call_in_cache(
@@ -163,6 +217,7 @@ def IteratorCacher(
                 else:
                     raise ValueError(sta)
 
+            # find out which value are cached and which value have to be computed
             dones = []
             todos = []
             [
@@ -174,7 +229,8 @@ def IteratorCacher(
             p(f"Number of values to compute: '{len(todos)}'")
 
             if todos:
-                # argument to use to compute all missing values
+                # aggregate the arguments that are shared for all calls
+                # with arguments from iter_list (i.e. that are batch specific)
                 todo_kwargs = kwargs.copy()
                 for il in iter_list:
                     assert il in todo_kwargs
@@ -194,7 +250,8 @@ def IteratorCacher(
                 p(f"Number of batches: {len(batches)}")
                 p(f"Sample of arguments before actual call: {str(batches[0])[:1000]}")
 
-                # compute missing values
+                # compute missing values for each batch, turn the result
+                # into a list, then aggregate all those lists into one
                 new_parsed = []
                 for ib, b in enumerate(batches):
                     p(f"Number in batch: {len(b[il])}")
@@ -223,7 +280,8 @@ def IteratorCacher(
 
                 assert len(new_parsed) == len(todos)
 
-            # add values to cache and reconstruct full output at the same time
+            # store the value of each iteration of the iter_lists in the cache
+            # and reconstruct the final list with all the values in the right order
             result_list = []
             for i in range(n_items):
                 item = all_kwargs[i]
@@ -237,7 +295,7 @@ def IteratorCacher(
                         **item,
                     )
                 else:
-                    # was computed by batch, we need to store it now
+                    # was computed in a batch, we need to store it now
                     val_to_cache = new_parsed[todos.index(item)]
                     assert all(il in item for il in iter_list)
                     val = memory_handler(
@@ -246,7 +304,7 @@ def IteratorCacher(
                         func=func,
                         **item,
                     )
-                    # sanity check and for good measure a retrieval test
+                    # sanity check for good measure: retrieval test
                     check = memory_handler(
                         cacher_code=CrashIfNotCached(),
                         func_hash=func_hash,
