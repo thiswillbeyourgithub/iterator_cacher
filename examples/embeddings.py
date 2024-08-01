@@ -14,6 +14,7 @@ cached = IteratorCacher(
     memory_object=cache_location,
     iter_list=["input"],
     verbose=True,
+    debug=True,
     res_to_list = lambda out: out.to_dict()["data"],
 )(litellm.embedding)
 embedder = partial(cached, model="openai/text-embedding-3-small")
