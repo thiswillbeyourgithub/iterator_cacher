@@ -73,6 +73,7 @@ def IteratorCacher(
     iter_list: Optional[List[str]] = None,
     batch_size: int = 500,
     verbose: bool = False,
+    debug: bool = False,
     ) -> Callable:
     """
     Note that args are not supported, you have to send each argument as a
@@ -113,7 +114,14 @@ def IteratorCacher(
 
     verbose: bool
 
+    debug: bool, default False
+        implies verbose=True
+        Does many sanity check, which makes the whole thing slower
+
     """
+    if debug:
+        verbose = True
+
     def p(message: str) -> None:
         "print if verbose is set"
         if verbose:
@@ -197,41 +205,42 @@ def IteratorCacher(
             ]
 
             # sanity check
-            for ist, sta in enumerate(states):
-                if sta is True:
-                    memory_handler(
-                        cacher_code=CrashIfNotCached(),
-                        func_hash=func_hash,
-                        user_func=func,
-                        kwargs=all_kwargs[ist],
-                    ) is sta
-                elif sta is False:
-                    assert memory_handler.check_call_in_cache(
-                        cacher_code=DoComputeValue(),
-                        func_hash=func_hash,
-                        user_func=func,
-                        kwargs=all_kwargs[ist],
-                    ) is sta
-                    assert memory_handler.check_call_in_cache(
-                        cacher_code="whatever",
-                        func_hash=func_hash,
-                        user_func="something",
-                        kwargs=all_kwargs[ist],
-                    ) is sta
-                    try:
-                        failed = None
+            if debug:
+                for ist, sta in enumerate(states):
+                    if sta is True:
                         memory_handler(
                             cacher_code=CrashIfNotCached(),
                             func_hash=func_hash,
                             user_func=func,
                             kwargs=all_kwargs[ist],
-                        )
-                        failed = False
-                    except Exception:
-                        failed = True
-                    assert failed, "Sanity check failed"
-                else:
-                    raise ValueError(sta)
+                        ) is sta
+                    elif sta is False:
+                        assert memory_handler.check_call_in_cache(
+                            cacher_code=DoComputeValue(),
+                            func_hash=func_hash,
+                            user_func=func,
+                            kwargs=all_kwargs[ist],
+                        ) is sta
+                        assert memory_handler.check_call_in_cache(
+                            cacher_code="whatever",
+                            func_hash=func_hash,
+                            user_func="something",
+                            kwargs=all_kwargs[ist],
+                        ) is sta
+                        try:
+                            failed = None
+                            memory_handler(
+                                cacher_code=CrashIfNotCached(),
+                                func_hash=func_hash,
+                                user_func=func,
+                                kwargs=all_kwargs[ist],
+                            )
+                            failed = False
+                        except Exception:
+                            failed = True
+                        assert failed, "Sanity check failed"
+                    else:
+                        raise ValueError(sta)
 
             # find out which value are cached and which value have to be computed
             dones = []
@@ -279,12 +288,13 @@ def IteratorCacher(
                         user_func=func,
                         kwargs=b,
                     )
-                    memory_handler(
-                        cacher_code=CrashIfNotCached(),
-                        func_hash=func_hash,
-                        user_func=func,
-                        kwargs=b,
-                    ) is new_values
+                    if debug:
+                        memory_handler(
+                            cacher_code=CrashIfNotCached(),
+                            func_hash=func_hash,
+                            user_func=func,
+                            kwargs=b,
+                        ) is new_values
 
                     # upack the output into an iterable
                     temp_parsed = res_to_list(new_values)
@@ -322,13 +332,14 @@ def IteratorCacher(
                     assert val2 is val
 
                 # sanity check
-                test = memory_handler(
-                    cacher_code=CrashIfNotCached(),
-                    func_hash=func_hash,
-                    user_func=func,
-                    kwargs=item,
-                )
-                assert joblib.hash(test) == joblib.hash(val)
+                if debug:
+                    test = memory_handler(
+                        cacher_code=CrashIfNotCached(),
+                        func_hash=func_hash,
+                        user_func=func,
+                        kwargs=item,
+                    )
+                    assert joblib.hash(test) == joblib.hash(val)
 
                 result_list.append(val)
 
