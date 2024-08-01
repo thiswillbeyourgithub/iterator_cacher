@@ -6,7 +6,7 @@ import inspect
 from beartype import beartype
 import joblib
 
-__VERSION__: str = "0.1.1"
+__VERSION__: str = "1.0.0"
 
 class CachingCodes:
     "Used to tell the memory_handler what to do"

@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="iterator_cacher",
-    version="0.1.1",
+    version="1.0.0",
     description="Decorate a python function to cache all subsets of iterable inputs",
     long_description="Decorate a python function to cache all subsets of iterable inputs",
     url="https://github.com/thiswillbeyourgithub/iterator_cacher",
