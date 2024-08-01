@@ -25,9 +25,8 @@ class ReturnThisValue(CachingCodes):
 def memory_handler_(
     cacher_code: Union[CachingCodes, Any],
     func_hash: str,
-    func: Callable,
-    *args,
-    **kwargs,
+    user_func: Callable,
+    kwargs: Any,
     ) -> List[Union[bool, Any]]:
     """
     Sort of like a wrapper around func.
@@ -39,6 +38,9 @@ def memory_handler_(
     Arguments:
     ----------
     func_hash is not used internally but allows to distinguish functions.
+
+    user_func: Callable
+        used if needed to actually compute something
 
     cacher_code can have several values:
         if of class CrashIfNotCached:
@@ -52,7 +54,6 @@ def memory_handler_(
     the value, either computed or from the cache
 
     """
-    assert not args, f"Non keyword args are not supported but received {args}"
     if isinstance(cacher_code, CrashIfNotCached):
         raise Exception(f"CrashIfNotCached: for kwargs '{kwargs}'")
     elif isinstance(cacher_code, ReturnThisValue):
@@ -60,7 +61,7 @@ def memory_handler_(
     else:
         assert isinstance(cacher_code, DoComputeValue), f"Expected cacher_code DoComputeValue, not {cacher_code}"
 
-    out = func(**kwargs)
+    out = user_func(**kwargs)
 
     return out
 
@@ -141,10 +142,13 @@ def IteratorCacher(
         func_hash = joblib.hash(to_hash)
         p(f"Function hash: {func_hash}")
 
+        try:
+            p(f"memory_handler_ hash: {joblib.hash(memory_handler_)}")
+        except Exception as err:
+            p(f"Couldn't hash memory_handler_: '{err}'")
         memory_handler = memory_object.cache(
-            ignore=["cacher_code", "func"],
+            ignore=["cacher_code", "user_func"],
         )(memory_handler_)
-        p(f"memory_handler_ hash: {joblib.hash(memory_handler_)}")
 
         def wrapper(
             iter_list: List[str] = iter_list,
@@ -186,8 +190,8 @@ def IteratorCacher(
                 memory_handler.check_call_in_cache(
                     cacher_code=None,
                     func_hash=func_hash,
-                    func=func,
-                    **item,
+                    user_func=func,
+                    kwargs=item,
                 )
                 for item in all_kwargs
             ]
@@ -198,21 +202,21 @@ def IteratorCacher(
                     assert memory_handler.check_call_in_cache(
                         cacher_code=CrashIfNotCached(),
                         func_hash=func_hash,
-                        func=func,
-                        **all_kwargs[ist],
+                        user_func=func,
+                        kwargs=all_kwargs[ist],
                     ) is sta
                 elif sta is False:
                     assert memory_handler.check_call_in_cache(
                         cacher_code=DoComputeValue(),
                         func_hash=func_hash,
-                        func=func,
-                        **all_kwargs[ist],
+                        user_func=func,
+                        kwargs=all_kwargs[ist],
                     ) is sta
                     assert memory_handler.check_call_in_cache(
                         cacher_code="whatever",
                         func_hash=func_hash,
-                        func="something",
-                        **all_kwargs[ist],
+                        user_func="something",
+                        kwargs=all_kwargs[ist],
                     ) is sta
                 else:
                     raise ValueError(sta)
@@ -260,14 +264,14 @@ def IteratorCacher(
                     new_values = memory_handler(
                         cacher_code=DoComputeValue(),
                         func_hash=func_hash,
-                        func=func,
-                        **b,
+                        user_func=func,
+                        kwargs=b,
                     )
                     memory_handler(
                         cacher_code=CrashIfNotCached(),
                         func_hash=func_hash,
-                        func=func,
-                        **b,
+                        user_func=func,
+                        kwargs=b,
                     ) is new_values
 
                     # upack the output into an iterable
@@ -291,8 +295,8 @@ def IteratorCacher(
                     val = memory_handler(
                         cacher_code=CrashIfNotCached(),
                         func_hash=func_hash,
-                        func=func,
-                        **item,
+                        user_func=func,
+                        kwargs=item,
                     )
                 else:
                     # was computed in a batch, we need to store it now
@@ -301,15 +305,15 @@ def IteratorCacher(
                     val = memory_handler(
                         cacher_code=ReturnThisValue(value=val_to_cache),
                         func_hash=func_hash,
-                        func=func,
-                        **item,
+                        user_func=func,
+                        kwargs=item,
                     )
                     # sanity check for good measure: retrieval test
                     check = memory_handler(
                         cacher_code=CrashIfNotCached(),
                         func_hash=func_hash,
-                        func=func,
-                        **item,
+                        user_func=func,
+                        kwargs=item,
                     )
                     try:
                         assert val is check or val == check
