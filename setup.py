@@ -1,12 +1,11 @@
 
 from setuptools import setup, find_packages
-from setuptools.command.install import install
 
 setup(
     name="iterator_cacher",
     version="0.1.1",
-    description="decorator to transparently cache each element of an iterable",
-    long_description="decorator to transparently cache each element of an iterable",
+    description="Decorate a python function to cache all subsets of iterable inputs",
+    long_description="Decorate a python function to cache all subsets of iterable inputs",
     url="https://github.com/thiswillbeyourgithub/iterator_cacher",
     packages=find_packages(),
 
@@ -26,9 +25,8 @@ setup(
     },
 
     install_requires=[
-        "dill >= 0.3.8",
         "joblib >= 1.4.2",
-        "beartype >= 0.18.5",
+        "beartype >= 0.19.0rc0",
     ],
 
 )
