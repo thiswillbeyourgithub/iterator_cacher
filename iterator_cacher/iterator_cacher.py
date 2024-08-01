@@ -357,9 +357,7 @@ def IteratorCacher(
 
         wrapper = wraps(func)(wrapper)
         wrapper.iterator_cacher_memory_handler = memory_handler
-        wrapper.check_call_in_cache = memory_handler.check_call_in_cache
-        wrapper.func = func
-        wrapper.ignore = memory_handler.ignore
+        wrapper.user_func = func
         wraps.iterator_cacher_memory = memory_object
 
         return wrapper
