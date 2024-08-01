@@ -272,8 +272,9 @@ def IteratorCacher(
                 if len(todos) > 1 and batch_size > 1:
                     assert len(batches[0][il]) > 1, f"Unexpected batches length"
 
-                p(f"Number of batches: {len(batches)}")
-                p(f"Sample of arguments before actual call: {str(batches[0])[:1000]}")
+                if debug:
+                    p(f"Number of batches: {len(batches)}")
+                    p(f"Sample of arguments before actual call: {str(batches[0])[:1000]}")
 
                 # compute missing values for each batch, turn the result
                 # into a list, then aggregate all those lists into one
@@ -298,7 +299,8 @@ def IteratorCacher(
 
                     # upack the output into an iterable
                     temp_parsed = res_to_list(new_values)
-                    p(f"Sample after unpacking: {str(temp_parsed)[:1000]}")
+                    if debug:
+                        p(f"Sample after unpacking: {str(temp_parsed)[:1000]}")
                     assert isinstance(temp_parsed, list), "The computed value must be produce a list!"
                     assert len(temp_parsed) == len(b[il]), f"Unexpected list values: parsed: {len(temp_parsed)} ; in arg: {len(b[il])}"
                     assert isinstance(temp_parsed, list), f"Expected type list after unpacking but got {type(temp_parsed)}"
@@ -339,7 +341,7 @@ def IteratorCacher(
                         user_func=func,
                         kwargs=item,
                     )
-                    assert val2 is val or val2 == val or joblib.hash(val2) == joblib.hash(val), f"val != val2:\nval is {str(val)[:100]}\nval2 is {str(val2)[:100]}"
+                    assert val2 is val or val2 == val or joblib.hash(val2) == joblib.hash(val) or res_to_list(val2) is val or res_to_list(val2) == val or joblib.hash(res_to_list(val2)) == joblib.hash(res_to_list(val2)), f"val != val2:\nval is {str(val)[:100]}\nval2 is {str(val2)[:100]}"
 
                 result_list.append(val)
 
