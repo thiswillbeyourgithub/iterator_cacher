@@ -199,7 +199,7 @@ def IteratorCacher(
             # sanity check
             for ist, sta in enumerate(states):
                 if sta is True:
-                    assert memory_handler.check_call_in_cache(
+                    memory_handler(
                         cacher_code=CrashIfNotCached(),
                         func_hash=func_hash,
                         user_func=func,
@@ -218,6 +218,18 @@ def IteratorCacher(
                         user_func="something",
                         kwargs=all_kwargs[ist],
                     ) is sta
+                    try:
+                        failed = None
+                        memory_handler(
+                            cacher_code=CrashIfNotCached(),
+                            func_hash=func_hash,
+                            user_func=func,
+                            kwargs=all_kwargs[ist],
+                        )
+                        failed = False
+                    except Exception:
+                        failed = True
+                    assert failed, "Sanity check failed"
                 else:
                     raise ValueError(sta)
 
@@ -300,32 +312,27 @@ def IteratorCacher(
                     )
                 else:
                     # was computed in a batch, we need to store it now
-                    val_to_cache = new_parsed[todos.index(item)]
-                    assert all(il in item for il in iter_list)
-                    val = memory_handler(
-                        cacher_code=ReturnThisValue(value=val_to_cache),
+                    val = new_parsed[todos.index(item)]
+                    val2 = memory_handler(
+                        cacher_code=ReturnThisValue(value=val),
                         func_hash=func_hash,
                         user_func=func,
                         kwargs=item,
                     )
-                    # sanity check for good measure: retrieval test
-                    check = memory_handler(
-                        cacher_code=CrashIfNotCached(),
-                        func_hash=func_hash,
-                        user_func=func,
-                        kwargs=item,
-                    )
-                    try:
-                        assert val is check or val == check
-                    except AssertionError:
-                        raise
-                    except Exception:
-                        assert type(val) == type(check)
+                    assert val2 is val
 
-                    assert val is val_to_cache, f"Error: val is {str(val)[:1000]} and val_to_cache is {str(res_to_list(val_to_cache))[:1000]}"
+                # sanity check
+                test = memory_handler(
+                    cacher_code=CrashIfNotCached(),
+                    func_hash=func_hash,
+                    user_func=func,
+                    kwargs=item,
+                )
+                assert joblib.hash(test) == joblib.hash(val)
 
                 result_list.append(val)
 
+            # final checks
             assert len(result_list) == n_items
 
             # assemble the result as per the user liking
@@ -334,6 +341,7 @@ def IteratorCacher(
                 return out
             else:
                 return result_list
+
 
         wrapper = wraps(func)(wrapper)
         wrapper.iterator_cacher_memory_handler = memory_handler
