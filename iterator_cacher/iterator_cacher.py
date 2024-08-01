@@ -333,14 +333,13 @@ def IteratorCacher(
                 else:
                     # was computed in a batch, we need to store it now
                     val = new_parsed[todos.index(item)]
-                    if debug:
-                        val2 = memory_handler(
-                            cacher_code=ReturnThisValue(value=val),
-                            func_hash=func_hash,
-                            user_func=func,
-                            kwargs=item,
-                        )
-                        assert val2 is val or val2 == val or joblib.hash(val2) == joblib.hash(val)
+                    val2 = memory_handler(
+                        cacher_code=ReturnThisValue(value=val),
+                        func_hash=func_hash,
+                        user_func=func,
+                        kwargs=item,
+                    )
+                    assert val2 is val or val2 == val or joblib.hash(val2) == joblib.hash(val)
 
                 result_list.append(val)
 
