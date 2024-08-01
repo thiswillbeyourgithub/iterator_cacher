@@ -339,7 +339,7 @@ def IteratorCacher(
                         user_func=func,
                         kwargs=item,
                     )
-                    assert val2 is val or val2 == val or joblib.hash(val2) == joblib.hash(val)
+                    assert val2 is val or val2 == val or joblib.hash(val2) == joblib.hash(val), f"val != val2:\nval is {str(val)[:100]}\nval2 is {str(val2)[:100]}"
 
                 result_list.append(val)
 
