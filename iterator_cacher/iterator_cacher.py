@@ -288,7 +288,7 @@ def IteratorCacher(
                 new_parsed = []
                 for ib, b in enumerate(batches):
                     p(f"Number in batch: {len(b[il])}")
-                    p(f"Hash of batch #{ib}: {joblib.hash(b)}\nvalue: {str(b)[:100]}")
+                    p(f"Hash of batch #{ib + 1}/{len(batches)}: {joblib.hash(b)}\nvalue: {str(b)[:100]}")
                     assert all(il in b for il in iter_list), "missing iter_list elements in batch"
                     new_values = memory_handler(
                         cacher_code=DoComputeValue(),
