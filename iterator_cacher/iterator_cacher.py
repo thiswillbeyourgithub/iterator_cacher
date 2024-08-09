@@ -71,6 +71,7 @@ def IteratorCacher(
     res_to_list: Callable,
     combine_res: Optional[Callable] = None,
     iter_list: Optional[List[str]] = None,
+    ignore: Optional[List[str]] = None,
     batch_size: int = 500,
     verbose: bool = False,
     debug: bool = False,
@@ -112,6 +113,9 @@ def IteratorCacher(
     batch_size: int, default 500
         if calling with many input arguments, call the func by batch of this size
 
+    ignore: List[str]
+        optional list of keyword arguments to ignore
+
     verbose: bool
 
     debug: bool, default False
@@ -126,6 +130,9 @@ def IteratorCacher(
         "print if verbose is set"
         if verbose:
             print(message)
+
+    if not ignore:
+        ignore = []
 
     @beartype
     def meta_wrapper(func: Callable) -> Callable:
@@ -155,7 +162,7 @@ def IteratorCacher(
         except Exception as err:
             p(f"Couldn't hash memory_handler_: '{err}'")
         memory_handler = memory_object.cache(
-            ignore=["cacher_code", "user_func"],
+            ignore=["cacher_code", "user_func"] + ignore,
         )(memory_handler_)
 
         def wrapper(
