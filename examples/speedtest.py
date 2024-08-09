@@ -76,5 +76,5 @@ for test in range(10):
 time_with_caching = times[0]
 time_wo_caching = times[1]
 
-print(f"\nFinal times:\nCached version: {time_with_caching}\nNon cacher version: {time_wo_caching}")
+print(f"\nFinal times:\nCached version: {time_with_caching}\nNon cached version: {time_wo_caching}")
 
