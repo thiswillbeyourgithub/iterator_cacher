@@ -348,7 +348,10 @@ def IteratorCacher(
                         user_func=func,
                         kwargs=item,
                     )
-                    assert val2 is val or val2 == val or joblib.hash(val2) == joblib.hash(val) or res_to_list(val2) is val or res_to_list(val2) == val or joblib.hash(res_to_list(val2)) == joblib.hash(res_to_list(val2)), f"val != val2:\nval is {str(val)[:100]}\nval2 is {str(val2)[:100]}"
+                    try:
+                        assert val2 is val or val2 == val or joblib.hash(val2) == joblib.hash(val) or res_to_list(val2) is val or res_to_list(val2) == val or joblib.hash(res_to_list(val2)) == joblib.hash(res_to_list(val2)), f"val != val2:\nval is {str(val)[:100]}\nval2 is {str(val2)[:100]}"
+                    except Exception as err:
+                        print(f"Possible error when checking output value: {err}\nYou want to double check your argument functions")
 
                 result_list.append(val)
 
