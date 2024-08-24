@@ -19,7 +19,7 @@ class DoComputeValue(CachingCodes):
     pass
 class ReturnThisValue(CachingCodes):
     "Return the value directly, in effect storing the value in the cache"
-    def __init__(self, value):
+    def __init__(self, value: Any) -> None:
         self.value = value
 
 def memory_handler_(
