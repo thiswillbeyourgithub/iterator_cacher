@@ -26,7 +26,7 @@ setup(
 
     install_requires=[
         "joblib >= 1.4.2",
-        "beartype >= 0.19.0rc0",
+        "beartype >= 0.19.0",
     ],
 
 )
